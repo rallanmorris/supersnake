@@ -22,6 +22,9 @@ import pygame
 import time
 import random
 
+# IMPORT CLASSES
+from button import Button
+
 # INITIALIZE VARIABLES
 
 # Pygame
@@ -31,7 +34,7 @@ pygame.init()
 snake_color = (0, 128, 0)
 food_color = (250, 112, 112)
 ammo_color = (0, 0, 0)
-background_color = (128, 128, 128)
+background_color = (90, 133, 172)
 white = (255, 255, 255)
 black = (0, 0, 0)
 
@@ -40,10 +43,15 @@ dis_width, dis_height = 1920, 1080
 dis = pygame.display.set_mode((dis_width, dis_height))
 pygame.display.set_caption('Super Snake')
 
+# Controls Sprites
+wasd_img = pygame.transform.scale(pygame.image.load("assets/sprites/wasd.png").convert_alpha(), (400, 400))
+spacebar_img = pygame.transform.scale(pygame.image.load("assets/sprites/spacebar.png").convert_alpha(), (400, 400))
+p_img = pygame.transform.scale(pygame.image.load("assets/sprites/p.png").convert_alpha(), (200, 200))
+
 # Show hearts, ammo, food
-heart_img = pygame.transform.scale(pygame.image.load("Sprites/heart.png").convert_alpha(), (25, 25))
-ammo_img = pygame.transform.scale(pygame.image.load("Sprites/ammo.png").convert_alpha(), (20, 20))
-food_img = pygame.transform.scale(pygame.image.load("Sprites/apple.png").convert_alpha(), (20, 20))
+heart_img = pygame.transform.scale(pygame.image.load("assets/sprites/heart.png").convert_alpha(), (25, 25))
+ammo_img = pygame.transform.scale(pygame.image.load("assets/sprites/ammo.png").convert_alpha(), (20, 20))
+food_img = pygame.transform.scale(pygame.image.load("assets/sprites/apple.png").convert_alpha(), (20, 20))
 
 # Clock object to keep track of time
 clock = pygame.time.Clock()
@@ -69,6 +77,9 @@ high_score = 0
 
 # DISPLAY FUNCTIONS
 # need to update display to show on screen
+def get_font(size): # Returns font in the desired size
+	return pygame.font.Font("assets/SuperMagic.ttf", size)
+
 def display_score(score):
 	value = score_font.render("SCORE: " + str(score), True, black)
 	dis.blit(value, [0, 0])
@@ -91,9 +102,9 @@ def display_snake(snake_block, snake_List):
 	for x in snake_List:
 		pygame.draw.rect(dis, snake_color, [x[0], x[1], snake_block, snake_block], border_radius=1)
 
-def display_message(msg, color):
+def display_message(msg, color, x, y):
 	mesg = font_style.render(msg, True, color)
-	dis.blit(mesg, [dis_width / 6, dis_height / 3])
+	dis.blit(mesg, [x, y])
 
 def display_explosion(x, y):
 	pygame.draw.rect(dis, white, [x, y, snake_block, snake_block], border_radius=10)
@@ -129,25 +140,90 @@ def animate_damage():
 	time.sleep(0.1)
 
 # GAME STATE FUNCTIONS
+# Options Menu
+def options_screen():
+	while True:
+		# get mouse pos
+		options_mouse_pos = pygame.mouse.get_pos()
+		# fill display
+		dis.fill("white")
+
+		# display menu txt
+		options_txt = get_font(45).render("This is the OPTIONS screen.", True, "Black")
+		options_rect = options_txt.get_rect(center=(960, 260))
+		dis.blit(options_txt, options_rect)
+
+		# display back button
+		options_back = Button(image=None, pos=(960, 460), 
+							text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
+		options_back.changeColor(options_mouse_pos)
+		options_back.update(dis)
+
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if options_back.checkForInput(options_mouse_pos):
+					start_screen()
+
+		pygame.display.update()
+
+
 # Start menu state
 def start_screen():
 	# Load Music
-	pygame.mixer.music.load("Music/Happy_beat.mp3")
+	pygame.mixer.music.load("assets/music/Happy_beat.mp3")
 	pygame.mixer.music.play(loops=-1)
 	while True:
+		# fill background of display
 		dis.fill(background_color)
-		display_message("Press C to Start or Q to Quit", white)
+
+		# get mouse pos
+		menu_mouse_pos = pygame.mouse.get_pos()
+
+		# Display Menu title
+		menu_txt = get_font(200).render("SUPER SNAKE", True, "#54bc46")
+		menu_rect = menu_txt.get_rect(center=(960, 200))
+		dis.blit(menu_txt, menu_rect)
+
+		# Make buttons
+		play_button = Button(image=pygame.image.load("assets/sprites/Play Rect.png"), pos=(960, 450), 
+							text_input="PLAY", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
+		options_button = Button(image=pygame.image.load("assets/sprites/Options Rect.png"), pos=(960, 600), 
+							text_input="OPTIONS", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
+		quit_button = Button(image=pygame.image.load("assets/sprites/Quit Rect.png"), pos=(960, 750), 
+							text_input="QUIT", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
+
+		for button in [play_button, options_button, quit_button]:
+			button.changeColor(menu_mouse_pos)
+			button.update(dis)
+
+		#display_message("Press C to Start or Q to Quit", white)
 		pygame.display.update()
 		for event in pygame.event.get():
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_c:
 					# Load Music
 					pygame.mixer.music.stop()
-					pygame.mixer.music.load("Music/ricky_type_beat.mp3")
+					pygame.mixer.music.load("assets/music/ricky_type_beat.mp3")
 					# Start Music
 					pygame.mixer.music.play(loops=-1)
 					return
 				if event.key == pygame.K_q:
+					pygame.quit()
+					quit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if play_button.checkForInput(menu_mouse_pos):
+					# Load Music
+					pygame.mixer.music.stop()
+					pygame.mixer.music.load("assets/music/ricky_type_beat.mp3")
+					# Start Music
+					pygame.mixer.music.play(loops=-1)
+					return
+				if options_button.checkForInput(menu_mouse_pos):
+					options_screen()
+				if quit_button.checkForInput(menu_mouse_pos):
 					pygame.quit()
 					quit()
 
@@ -191,7 +267,8 @@ def gameLoop():
 	score = 0
 	health = 3
 
-	paused = False     
+	dis.fill(background_color)
+	paused = True   
 
 	bullet_List = []
 	bullet = []
@@ -207,11 +284,50 @@ def gameLoop():
 
 	while True:
 		while paused:
-			display_message("Paused. Press P to Resume", white)
-			pygame.display.update()
+			display_message("PAUSE", white, 900, 100)
+			dis.blit(p_img, (860, 170))
+
+			display_message("MOVE", white, 250, 100)
+			dis.blit(wasd_img, (100, 100))
+
+			display_message("FIRE", white, 1600, 100)
+			dis.blit(spacebar_img, (1450, 100))
+
+			pause_mouse_pos = pygame.mouse.get_pos()
+
+			# display back button
+			pause_back = Button(image=pygame.image.load("assets/sprites/Quit Rect.png"), pos=(960, 540), 
+							text_input="PLAY", font=get_font(100), base_color="Black", hovering_color="Green")
+			pause_back.changeColor(pause_mouse_pos)
+			pause_back.update(dis)
+
+			# display quit button
+			menu_button = Button(image=pygame.image.load("assets/sprites/Quit Rect.png"), pos=(960, 900), 
+							text_input="QUIT GAME", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
+			menu_button.changeColor(pause_mouse_pos)
+			menu_button.update(dis)
+
 			for event in pygame.event.get():
 				if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
 					paused = False
+				if event.type == pygame.MOUSEBUTTONDOWN:
+					if pause_back.checkForInput(pause_mouse_pos):
+						paused = False
+					if menu_button.checkForInput(pause_mouse_pos):
+						paused = False
+						snake_List = []
+						x1, y1 = dis_width / 2, dis_height / 2
+						x1_change, y1_change = 0, 0
+						length_of_snake = 1
+						bullet_fired = False
+						score = 0
+						ammo_num = 0
+						health = 3
+						snake_speed = 8
+						bullet_List = []
+						start_screen()
+						
+			pygame.display.update()
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
@@ -353,7 +469,7 @@ def gameLoop():
 				just_fired = True
 				b[4] += 1
 			else:
-			 	just_fired = False
+				just_fired = False
 
 			blocks_to_delete = []
 			b[0] += b[2]
