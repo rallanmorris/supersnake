@@ -1,10 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_data_files
 
-datas = [('assets/music/*','assets/music'),('assets/sprites/*','assets/sprites'),('assets/fonts/*','assets/fonts')]
-datas += collect_data_files('assets/music')
-datas += collect_data_files('assets/sprites')
+datas = [('assets/music/*','assets/music'),('assets/sprites/*.png','assets/sprites'),('assets/fonts/*','assets/fonts')]
 datas += collect_data_files('assets/fonts')
+datas += collect_data_files('assets/sprites')
+datas += collect_data_files('assets/music')
 
 
 a = Analysis(
@@ -35,7 +35,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

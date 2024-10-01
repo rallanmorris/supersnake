@@ -11,11 +11,10 @@
 # 5. Game crashed when I pressed space once after a lot of repeated games
 #
 # ---TODO---
-# 1. Add Health
-# 2. Add Music
+# 1. Reorganize code to work with pygbag (async functions etc)
+# 2. Add Health pickups
 # 3. Add Sound effects
-# 4. Better Menus
-# 5. Better sprites 
+# 4. Better sprites 
 #
 # IMPORT MODULES
 #import asyncio
@@ -30,13 +29,13 @@ from button import Button
 
 # Pyinstaller function
 def resource_path(relative_path):
-    try:
-    # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
+	try:
+	# PyInstaller creates a temp folder and stores path in _MEIPASS
+		base_path = sys._MEIPASS
+	except Exception:
+		base_path = os.path.abspath(".")
 
-    return os.path.join(base_path, relative_path)
+	return os.path.join(base_path, relative_path)
 
 # asset urls
 wasd_img_url = resource_path('assets/sprites/wasd.png')
@@ -66,9 +65,12 @@ background_color = (90, 133, 172)
 white = (255, 255, 255)
 black = (0, 0, 0)
 
-# Display 800, 600
-dis_width, dis_height = 1920, 1080
-dis = pygame.display.set_mode((dis_width, dis_height))
+# Display from client
+infoObject = pygame.display.Info()
+
+dis_width, dis_height = infoObject.current_w, infoObject.current_h
+
+dis = pygame.display.set_mode((infoObject.current_w, infoObject.current_h))
 pygame.display.set_caption('Super Snake')
 
 # Controls Sprites
@@ -179,11 +181,11 @@ def options_screen():
 
 		# display menu txt
 		options_txt = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-		options_rect = options_txt.get_rect(center=(960, 260))
+		options_rect = options_txt.get_rect(center=(dis_width/2, dis_height/10))
 		dis.blit(options_txt, options_rect)
 
 		# display back button
-		options_back = Button(image=None, pos=(960, 460), 
+		options_back = Button(image=None, pos=(dis_width/2, (dis_height/10)*3), 
 							text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
 		options_back.changeColor(options_mouse_pos)
 		options_back.update(dis)
@@ -213,15 +215,15 @@ def start_screen():
 
 		# Display Menu title
 		menu_txt = get_font(200).render("SUPER SNAKE", True, "#54bc46")
-		menu_rect = menu_txt.get_rect(center=(960, 200))
+		menu_rect = menu_txt.get_rect(center=(dis_width/2, dis_height/10))
 		dis.blit(menu_txt, menu_rect)
 
 		# Make buttons
-		play_button = Button(image=pygame.image.load(play_rect_url), pos=(960, 450), 
+		play_button = Button(image=pygame.image.load(play_rect_url), pos=(dis_width/2, (dis_height/10)*4), 
 							text_input="PLAY", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
-		options_button = Button(image=pygame.image.load(options_rect_url), pos=(960, 600), 
+		options_button = Button(image=pygame.image.load(options_rect_url), pos=(dis_width/2, (dis_height/10)*6), 
 							text_input="OPTIONS", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
-		quit_button = Button(image=pygame.image.load(quit_rect_url), pos=(960, 750), 
+		quit_button = Button(image=pygame.image.load(quit_rect_url), pos=(dis_width/2, (dis_height/10)*8), 
 							text_input="QUIT", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
 
 		for button in [play_button, options_button, quit_button]:
@@ -238,10 +240,10 @@ def start_screen():
 					pygame.mixer.music.load(ricky_type_beat_url)
 					# Start Music
 					pygame.mixer.music.play(loops=-1)
-					return
+					gameLoop()
 				if event.key == pygame.K_q:
 					pygame.quit()
-					quit()
+					sys.exit()
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				if play_button.checkForInput(menu_mouse_pos):
 					# Load Music
@@ -249,12 +251,13 @@ def start_screen():
 					pygame.mixer.music.load(ricky_type_beat_url)
 					# Start Music
 					pygame.mixer.music.play(loops=-1)
-					return
+					#return
+					gameLoop()
 				if options_button.checkForInput(menu_mouse_pos):
 					options_screen()
 				if quit_button.checkForInput(menu_mouse_pos):
 					pygame.quit()
-					quit()
+					sys.exit()
 
 # Main Game State
 def gameLoop():
@@ -311,28 +314,29 @@ def gameLoop():
 
 	snake_Head = [0, 0]
 
+	# Pause screen
 	while True:
 		while paused:
-			display_message("PAUSE", white, 900, 100)
-			dis.blit(p_img, (860, 170))
+			display_message("PAUSE", white, (dis_width/2)-(dis_width/32), (dis_height/10))
+			dis.blit(p_img, ((dis_width/2)-100, (dis_height/10)*2))
 
-			display_message("MOVE", white, 250, 100)
-			dis.blit(wasd_img, (100, 100))
+			display_message("MOVE", white, (dis_width/5)-(dis_width/42), (dis_height/10))
+			dis.blit(wasd_img, ((dis_width/10), (dis_height/10)))
 
-			display_message("FIRE", white, 1600, 100)
-			dis.blit(spacebar_img, (1450, 100))
+			display_message("FIRE", white, ((dis_width/5)*4)-(dis_width/38), (dis_height/10))
+			dis.blit(spacebar_img, (((dis_width/10)*8)-200, (dis_height/10)))
 
 			pause_mouse_pos = pygame.mouse.get_pos()
 
 			# display back button
-			pause_back = Button(image=pygame.image.load(quit_rect_url), pos=(960, 540), 
+			pause_back = Button(image=pygame.image.load(quit_rect_url), pos=(dis_width/2, (dis_height/10)*5), 
 							text_input="PLAY", font=get_font(100), base_color="Black", hovering_color="Green")
 			pause_back.changeColor(pause_mouse_pos)
 			pause_back.update(dis)
 
 			# display quit button
-			menu_button = Button(image=pygame.image.load(quit_rect_url), pos=(960, 900), 
-							text_input="QUIT GAME", font=get_font(100), base_color="#d7fcd4", hovering_color="White")
+			menu_button = Button(image=pygame.image.load(quit_rect_url), pos=(dis_width/2, (dis_height/10)*8), 
+							text_input="QUIT GAME", font=get_font(100), base_color="Black", hovering_color="White")
 			menu_button.changeColor(pause_mouse_pos)
 			menu_button.update(dis)
 
@@ -361,7 +365,7 @@ def gameLoop():
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
-				quit()
+				sys.exit()
 			# --TODO-- 
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
@@ -712,5 +716,5 @@ def gameLoop():
 		clock.tick(snake_speed)
 
 start_screen()
-gameLoop()
+#gameLoop()
 

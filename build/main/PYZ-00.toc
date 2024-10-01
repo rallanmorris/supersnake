@@ -1089,7 +1089,7 @@
   ('tty', 'C:\\Python312\\Lib\\tty.py', 'PYMODULE'),
   ('typing', 'C:\\Python312\\Lib\\typing.py', 'PYMODULE'),
   ('typing_extensions',
-   'C:\\Python312\\Lib\\site-packages\\setuptools\\_vendor\\typing_extensions.py',
+   'C:\\Python312\\Lib\\site-packages\\typing_extensions.py',
    'PYMODULE'),
   ('urllib', 'C:\\Python312\\Lib\\urllib\\__init__.py', 'PYMODULE'),
   ('urllib.error', 'C:\\Python312\\Lib\\urllib\\error.py', 'PYMODULE'),
